@@ -2,7 +2,8 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiErrors';
 import { IFaq } from './faq.interface';
 import { Faq } from './faq.model';
-import mongoose from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
+import QueryBuilder from '../../../helpers/QueryBuilder';
 
 
 const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
@@ -14,9 +15,19 @@ const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
     return faq;
 };
 
-const faqsFromDB = async (): Promise<IFaq[]> => {
-    const faqs = await Faq.find({});
-    return faqs;
+const faqsFromDB = async (query: FilterQuery<IFaq>): Promise<{ faqs: IFaq[], pagination: any}> => {
+
+  const FaqQuery = new QueryBuilder(
+    Faq.find({}),
+    query
+  )
+
+  const [faqs, pagination] = await Promise.all([
+    FaqQuery.queryModel().lean(),
+    FaqQuery.getPaginationInfo()
+  ])
+
+  return { faqs, pagination }
 };
   
 const deleteFaqToDB = async (id: string): Promise<IFaq | undefined> => {

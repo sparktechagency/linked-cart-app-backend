@@ -1,6 +1,6 @@
 import { USER_ROLES } from "../../../enums/user";
 import { IShop, IUser } from "./user.interface";
-import { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload, Secret } from 'jsonwebtoken';
 import { Shop, User } from "./user.model";
 import { StatusCodes } from "http-status-codes";
 import ApiError from "../../../errors/ApiErrors";
@@ -12,6 +12,7 @@ import { IChangePassword } from "../../../types/auth";
 import bcrypt from 'bcrypt';
 import config from "../../../config";
 import stripe from "../../../config/stripe";
+import { jwtHelper } from "../../../helpers/jwtHelper";
 
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
@@ -47,7 +48,7 @@ const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
 
 const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> => {
     const { id } = user;
-    const shopId= id;
+    const shopId = id;
     const shop = await Shop.findById(shopId);
     console.log("shop", shop)
 
@@ -145,7 +146,7 @@ const shopUpdateToDB = async (user: JwtPayload, payload: IShop) => {
         { new: true }
     );
 
-    if(!shop){
+    if (!shop) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to update shop information")
     }
 }
@@ -184,7 +185,11 @@ const addStripeAccountToDB = async (user: JwtPayload) => {
     // Update the user account with the Stripe account ID
     const updateAccount = await User.findOneAndUpdate(
         { _id: user.id },
-        { "accountInformation.stripeAccountId": account.id },
+        {
+            $set: {
+                "accountInformation.stripeAccountId": account.id
+            }
+        },
         { new: true }
     );
 

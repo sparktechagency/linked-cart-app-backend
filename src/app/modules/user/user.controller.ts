@@ -68,7 +68,7 @@ const shopUpdate = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
-        message: 'Shop Information Updated successfully',
+        message: 'Shop Information Updated successfully'
     });
 });
 
